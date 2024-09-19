@@ -72,11 +72,11 @@ println("Initial residual: ", residual)
 iteration = 1;
 while residual > 1e-12
     J = ForwardDiff.jacobian(obj, Uₑ)
-    Uₑ -= J \ O
-    O = obj(Uₑ)
-    residual = norm(O, Inf)
+    global Uₑ -= J \ O
+    global O = obj(Uₑ)
+    global residual = norm(O, Inf)
     @printf "Residual; it %i: %0.2e\n" iteration residual
-    iteration += 1
+    global iteration += 1
 end;
 # extract u/v
 uₑ = Uₑ[1:N];

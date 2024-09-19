@@ -145,8 +145,6 @@ struct DualStruct{T, DT}
 end
 @inline (DS::DualStruct)(::Type{TT}) where TT = DS.StandardStruct(TT)
 @inline (DS::DualStruct)(::Type{TT}) where TT <: ForwardDiff.Dual = DS.DualStruct(TT)
-@inline ISDUAL(::Type) = false
-@inline ISDUAL(::Type{TT}) where TT <: ForwardDiff.Dual = true
 
 const ChunkSize = 4
 const DT = ForwardDiff.Dual{Nothing, Float64, ChunkSize}

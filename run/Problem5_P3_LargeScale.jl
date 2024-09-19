@@ -61,8 +61,6 @@ struct DualStruct{T, DT}
 end
 @inline (DS::DualStruct)(::Type{TT}) where TT = DS.StandardStruct(TT)
 @inline (DS::DualStruct)(::Type{TT}) where TT <: ForwardDiff.Dual = DS.DualStruct(TT)
-@inline ISDUAL(::Type) = false
-@inline ISDUAL(::Type{TT}) where TT <: ForwardDiff.Dual = true
 
 function objective1!(out, u, f, left_bc, right_bc, helper, helper_memory)
     # get memory
@@ -162,6 +160,8 @@ obj!(out, U);
 Krylov.gmres!(GS, JV!, out, N=P, verbose=3);
 ΔU = GS.x;
 
+println("\nRunning full Newton-Krylov solver\n")
+
 # full Newton-Krylov solver
 O = zeros(2N);
 Ou = zeros(N);
@@ -174,18 +174,18 @@ println("Initial residual: ", residual)
 iteration = 1;
 while residual > 1e-10
     # setup for Krylov
-    u = @view U[1:N];
-    v = @view U[N+1:2N];
-    JV! = JacVec(obj!, U; tag=nothing);
+    local u = @view U[1:N];
+    local v = @view U[N+1:2N];
+    local JV! = JacVec(obj!, U; tag=nothing);
     ForwardDiff.jacobian!(Ju, obju!, Ou, u, cfg1);
     ForwardDiff.jacobian!(Jv, objv!, Ov, v, cfg1);
-    P = MyPreconditioner(Ju, Jv);
+    local P = MyPreconditioner(Ju, Jv);
     Krylov.gmres!(GS, JV!, O, N=P, verbose=3, atol=1e-12, rtol=1e-12);
-    U -= GS.x
+    @. U -= GS.x
     obj!(O, U)
-    residual = norm(O, Inf)
+    global residual = norm(O, Inf)
     @printf "Residual; it %i: %0.2e\n" iteration residual
-    iteration += 1
+    global iteration += 1
 end;
 
 # extract u/v
